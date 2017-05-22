@@ -12,7 +12,7 @@ readonly progname=$(basename $0)
 readonly script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 readonly main_dir=$( cd "${script_dir}" && cd .. && pwd )
 readonly application=$(basename ${main_dir})
-readonly module=$( cd "${main_dir}" && grep spec.name *.gemspec | grep -o [\'\"].*[^\'\"] | tr -d "\"\' ")
+readonly module_version=$( cd "${main_dir}" && grep spec.version *.gemspec | grep -o '[=].*[^ ]' | tr -d "= ")
 
 #############################################################################
 ## functions
@@ -26,10 +26,10 @@ function puts () {
 function bump_version () {
   puts "bump ${application} gem version"
 
-  old_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module}::VERSION)" )
+  old_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module_version}" )
   puts "gem version currently:" ${old_version}
 
-  new_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module}::VERSION + '.1').bump" )
+  new_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module_version} + '.1').bump" )
   puts "we will change it into:" ${new_version}
 
   cat lib/${application}/version.rb | sed "s/$old_version/$new_version/" > lib/${application}/version.rb.new
