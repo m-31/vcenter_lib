@@ -12,8 +12,7 @@ describe VcenterLib::Vcenter do
 
   context '#initialize' do
     it 'should create a RbVmomi::VIM' do
-      expect(RbVmomi::VIM).to
-      receive(:connect)
+      expect(RbVmomi::VIM).to receive(:connect)
         .with(host:     'vcenter01.ds.my_vcenter.com',
               user:     'my_user@vcenter',
               password: 'my_secret_password',
