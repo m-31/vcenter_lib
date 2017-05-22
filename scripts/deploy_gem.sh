@@ -26,7 +26,7 @@ function puts () {
 function bump_version () {
   puts "bump ${application} gem version"
 
-  old_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module_version}" )
+  old_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module_version})" )
   puts "gem version currently:" ${old_version}
 
   new_version=$( ruby -I lib/${application} -e "require 'version'; puts Gem::Version.new(${module_version} + '.1').bump" )
