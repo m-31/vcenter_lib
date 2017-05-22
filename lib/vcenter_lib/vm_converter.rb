@@ -1,7 +1,9 @@
 require 'rbvmomi'
 
 module VcenterLib
+  # convert VMware managed object into a simple hash
   class VmConverter
+    include Logging
 
     # see http://vijava.sourceforge.net/vSphereAPIDoc/ver51/ReferenceGuide/vim.vm.ConfigInfo.html
     ATTRIBUTES = [
@@ -42,53 +44,59 @@ module VcenterLib
       # summary:          'summary',
       # storage:          'storage',
       # devices:          'config.hardware.device',
-    ]
+    ].freeze
 
     def initialize(vcenter)
       @vcenter = vcenter
     end
 
-    # convert a VMware managed object into a simple hash.
-    def convert_vm_mor_to_h(vm_mob)
-      return nil unless vm_mob
-      props2h(vm_mob.collect!(*ATTRIBUTES))
+    # convert a VMware RbVmomi::VIM::ManagedObject into a simple hash.
+    def vm_mo_to_h(vm_mo, attributes = ATTRIBUTES)
+      return nil unless vm_mo
+      props2h(vm_mo.collect!(*attributes))
     end
 
-    def props2h(props)
-      additions = {}
-      props.delete_if do |k, v|
-        if v.is_a? RbVmomi::VIM::HostSystem
-          additions['datacenter'] = host_attribute(v.path, RbVmomi::VIM::Datacenter) rescue nil
-          additions['cluster']    = host_attribute(v.path, RbVmomi::VIM::ClusterComputeResource) rescue nil
-          additions['hypervisor'] = v.name rescue nil
-        end
-      end
-      props.merge!(additions)
-    end
-
-    # return parent object based on class provides name of RbVmomi object.
-    def host_attribute path, type
-      path.select { |x| x[0].is_a? type }[0][1]
-    end
-
-    def convert_vm_mobs_to_attr_hash(vm_mobs)
-      vms = @vcenter.serviceContent.propertyCollector.collectMultiple(vm_mobs, *ATTRIBUTES)
+    def vm_mos_to_h(vm_mobs, attributes = ATTRIBUTES)
+      vms = @vcenter.serviceContent.propertyCollector.collectMultiple(vm_mobs, *attributes)
       hosts = {} # cache already known hosts here
-      vms.map do |vm, props|
-        additions = {}
-        props.delete_if do |k, v|
+      vms.map do |_vm, props|
+        extra = {}
+        props.delete_if do |_k, v|
           if v.is_a? RbVmomi::VIM::HostSystem
-            additions = hosts[v] || {}
-            if additions.empty?
-              additions['datacenter'] = host_attribute(v.path, RbVmomi::VIM::Datacenter) rescue nil
-              additions['cluster']    = host_attribute(v.path, RbVmomi::VIM::ClusterComputeResource) rescue nil
-              additions['hypervisor'] = v.name rescue nil
-              hosts[v] = additions
+            extra = hosts[v] || {}
+            if extra.empty?
+              # rubocop:disable Style/RescueModifier
+              extra['datacenter'] = attribute(v.path, RbVmomi::VIM::Datacenter) rescue nil
+              extra['cluster'] = attribute(v.path, RbVmomi::VIM::ClusterComputeResource) rescue nil
+              extra['hypervisor'] = v.name rescue nil
+              # rubocop:enable Style/RescueModifier
+              hosts[v] = extra
             end
           end
         end
-        props.merge!(additions)
+        props.merge!(extra)
       end
+    end
+
+    private
+
+    def props2h(props)
+      extra = {}
+      props.delete_if do |_k, v|
+        if v.is_a? RbVmomi::VIM::HostSystem
+          # rubocop:disable Style/RescueModifier
+          extra['datacenter'] = attribute(v.path, RbVmomi::VIM::Datacenter) rescue nil
+          extra['cluster'] = attribute(v.path, RbVmomi::VIM::ClusterComputeResource) rescue nil
+          extra['hypervisor'] = v.name rescue nil
+          # rubocop:enable Style/RescueModifier
+        end
+      end
+      props.merge!(extra)
+    end
+
+    # return parent object based on class provides name of RbVmomi object.
+    def attribute(path, type)
+      path.select { |x| x[0].is_a? type }[0][1]
     end
   end
 end

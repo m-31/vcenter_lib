@@ -1,9 +1,11 @@
 require 'logger'
 
+# library for easy acces to vcenter informations
 module VcenterLib
-  require '../lib/vcenter_lib/version'
-  require '../lib/vcenter_lib/vcenter'
-  require '../lib/vcenter_lib/vm_converter'
+  require_relative 'vcenter_lib/logging'
+  require_relative 'vcenter_lib/version'
+  require_relative 'vcenter_lib/vcenter'
+  require_relative 'vcenter_lib/vm_converter'
 
   def logger
     unless @logger

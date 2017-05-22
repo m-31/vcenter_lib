@@ -1,8 +1,7 @@
 # vcenter library
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/vcenter_lib`. To experiment with that code, run `bin/console` for an interactive prompt.
+Use your vCenter credentials to ask for properties of any VM.
 
-TODO: Delete this and the text above, and describe your gem
 
 ## Installation
 
@@ -22,7 +21,37 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+    require 'pp'
+    require 'benchmark'
+    require_relative 'lib/vcenter_lib'
+    
+    options = {}
+    options[:username]    = 'my_user@vcenter'
+    options[:password]    = 'my_secret_password'
+    options[:vcenter_url] = 'vcenter01.ds.my_vcenter.com'
+    options[:insecure]    = true                      # you might need this
+    
+    @vcenter = VcenterLib::Vcenter.new(options)
+    @vm_converter = VcenterLib::VmConverter.new(@vcenter)
+    
+    puts 'get properties for certain VM'
+    vm = nil
+    time = Benchmark.realtime do
+      pp vm = @vcenter.find_vm('my_server.my_company.com')
+      pp @vm_converter.convert_vm_mor_to_h(vm)
+    end
+    
+    puts "run for #{time} seconds"
+    
+    puts 'get properties for all VMs'    
+    vms = nil
+    time = Benchmark.realtime do
+      pp (vms = @vm_converter.convert_vm_mobs_to_attr_hash(@vcenter.vms)).size
+    end
+    
+    pp vms
+    puts "run for #{time} seconds"
+
 
 ## Development
 
@@ -38,4 +67,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/m-31/v
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
