@@ -20,8 +20,8 @@ module VcenterLib
     # get all vms in all datacenters
     def vms
       logger.debug "get all VMs in all datacenters: begin"
-      result = dcs.inject([]) do |result, dc|
-        result + serviceContent.viewManager.CreateContainerView(
+      result = dcs.inject([]) do |r, dc|
+        r + serviceContent.viewManager.CreateContainerView(
           container: dc.vmFolder,
           type: ['VirtualMachine'],
           recursive: true

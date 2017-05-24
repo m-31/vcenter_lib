@@ -63,7 +63,7 @@ Style/GlobalVars:
 Style/RegexpLiteral:
   Enabled: true
 
-Style/AlignParameters:
+Layout/AlignParameters:
   EnforcedStyle: "with_fixed_indentation"
 
 Style/BracesAroundHashParameters:
