@@ -50,6 +50,13 @@ module VcenterLib
       @vcenter = vcenter
     end
 
+    # get all vms and their facts
+    def facts
+      vm_mos_to_h(@vcenter.vms).map do |h|
+        [h['name'], h]
+      end
+    end
+
     # convert a VMware RbVmomi::VIM::ManagedObject into a simple hash.
     def vm_mo_to_h(vm_mo, attributes = ATTRIBUTES)
       return nil unless vm_mo
