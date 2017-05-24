@@ -50,11 +50,14 @@ module VcenterLib
       @vcenter = vcenter
     end
 
-    # get all vms and their facts
+    # get all vms and their facts as hash with vm.name as key
     def facts
-      vm_mos_to_h(@vcenter.vms).map do |h|
-        [h['name'], h]
-      end
+      logger.debug "get complete data of all VMs in all datacenters: begin"
+      result = Hash[vm_mos_to_h(@vcenter.vms).map do |h|
+        [h['name'], Hash[h.map { |k, v| [k.tr('.', '_'), v] }]]
+      end]
+      logger.debug "get complete data of all VMs in all datacenters: end"
+      result
     end
 
     # convert a VMware RbVmomi::VIM::ManagedObject into a simple hash.
@@ -79,6 +82,7 @@ module VcenterLib
               # rubocop:enable Style/RescueModifier
               hosts[v] = extra
             end
+            true
           end
         end
         props.merge!(extra)
